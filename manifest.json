@@ -1,7 +1,7 @@
 {
     "name": "10fastfingers auto typer",
     "version": "1.0",
-    "permissions": ["storage"],
+    "permissions": ["storage", "tabs", "*://*/*"],
     "background": {
         "scripts": ["background.js"],
         "persistent": false
@@ -17,5 +17,7 @@
         "128": "images/get_started128.png"
     },
     "description": "This extension will type for you on the 10fastfingers typing speed test, at speed of your selection.",
-    "manifest_version": 2
+    "manifest_version": 2,
+    "content_security_policy": "script-src 'self' https://ajax.googleapis.com; object-src 'self'"
+
 }
