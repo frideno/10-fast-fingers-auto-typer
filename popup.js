@@ -7,6 +7,9 @@ output.innerHTML = slider.value;
 slider.oninput = function() {
     output.innerHTML = this.value;
 }
+var link = document.getElementById("url")
+link.href = 'https://10fastfingers.com/typing-test/english'
+link.innerHTML = '10 fast fingers'
 
 // allMyFunctions that create the typing logic itself.
 // myURLs contains the websites where you want your content script to run
@@ -19,26 +22,41 @@ function simulateKeyPress(element, character) {
 
 function typeWord(word) {
     inp = document.getElementById('inputfield');
-    console.log(word);
     word = word + ' ';
 
     for (var idx = 0; idx < word.length; idx++) {
         var c = word.charAt(idx);
         inp.value += c;
-        inp.dispatchEvent(new KeyboardEvent('keyup', { 'keyCode': c.charCodeAt(0) }));
+	inp.dispatchEvent(new KeyboardEvent('keyup', { 'keyCode': c.charCodeAt(0) }));
     }
 }
 
 function startTyping() {
     wordsdiv = document.getElementById('row1');
-    wordlist = [];
+    wordsList = [];
     for (i = 0; i < wordsdiv.children.length; i++) {
-        wordlist.push(wordsdiv.children[i].textContent);
+        wordsList.push(wordsdiv.children[i].textContent); 
     }
-    var timeoutVars = []
-        // put the word writings in timings by the WPM.
-    for (i = 0; i < wordlist.length; i++) {
-        timeoutVar = setTimeout(typeWord, ((60 / wpm_var) * 1000) * i, wordlist[i]);
+    
+    // calculate the actual bot wpm needed, considering word typed = fixed number of characters, instead of real word.
+    // Thus, applying a search of in which word we get to the total number of character needed to do the wpm, instead of just assumming that it will be in the wpm'th word
+    avgWordLength = 5.0;
+    numberOfCharsNeeded = wpmVar * avgWordLength;
+    console.log('chars', numberOfCharsNeeded);
+    cntr = 0
+    for (k = 0; k < wordsList.length; k++) {
+        cntr += (wordsList[k].length + 1);
+        if (cntr >= numberOfCharsNeeded)
+            break;
+    }
+    actualWpm = k;
+    console.log('actualWPM ', actualWpm)
+
+    timeoutVars = []
+    // put the word writings in timings by the actual WPM.
+    delayMs = (60 / actualWpm) * 1000;
+    for (i = 0; i < actualWpm; i++) {
+        timeoutVar = setTimeout(typeWord, delayMs * i, wordsList[i]);
         timeoutVars.push(timeoutVar);
     }
     // cancel all after round ends.
@@ -71,8 +89,8 @@ var start = function() {
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => {
         let url = tabs[0].url;
         if (myURLs.some(allowed_url => url.includes(allowed_url))) {
-            var wpm_var = parseFloat(document.getElementById('typingSpeedValue').innerHTML);
-            chrome.tabs.executeScript(null, { code: pasteFunctions() + ';wpm_var = ' + String(wpm_var) + ";" + "startTyping();" }, function(result) {});
+            var wpmVar = parseFloat(document.getElementById('typingSpeedValue').innerHTML);
+            chrome.tabs.executeScript(null, { code: pasteFunctions() + ';wpmVar = ' + String(wpmVar) + ";" + "startTyping();" }, function(result) {});
             window.close()
         }
     });
